@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Little Memories — Sign Up</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+</head>
+<body>
+<div class="auth-page">
+
+  <div class="auth-hero" style="background:linear-gradient(145deg,#4a7c5c 0%,#7a9e7e 100%);padding-bottom:36px;">
+    <div class="auth-hero-emoji">✨</div>
+    <h1>Join the Family</h1>
+    <p>Create your account to start capturing memories</p>
+  </div>
+
+  <div class="auth-body">
+    <h2 class="auth-form-title">Create account</h2>
+
+    <div id="error-msg" class="error-msg"></div>
+    <div id="success-msg" class="success-msg"></div>
+
+    <div class="form-group">
+      <label class="form-label" for="username">Your Name</label>
+      <input class="form-input" type="text" id="username" placeholder="e.g. Mom, Dad, Grandma" autocomplete="name">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="email">Email</label>
+      <input class="form-input" type="email" id="email" placeholder="your@email.com" autocomplete="email">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="password">Password</label>
+      <input class="form-input" type="password" id="password" placeholder="At least 6 characters" autocomplete="new-password">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="confirm">Confirm Password</label>
+      <input class="form-input" type="password" id="confirm" placeholder="Repeat your password" autocomplete="new-password">
+    </div>
+
+    <button class="btn btn-sage" id="signup-btn" onclick="signup()">Create Account</button>
+
+    <div class="auth-switch">
+      Already have an account? <a href="index.html">Sign in</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg;
+    el.classList.add('show');
+    document.getElementById('success-msg').classList.remove('show');
+  }
+
+  function showSuccess(msg) {
+    const el = document.getElementById('success-msg');
+    el.textContent = msg;
+    el.classList.add('show');
+    document.getElementById('error-msg').classList.remove('show');
+  }
+
+  async function signup() {
+    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm').value;
+    const btn = document.getElementById('signup-btn');
+
+    document.getElementById('error-msg').classList.remove('show');
+
+    if (!username || !email || !password || !confirm) {
+      showError('Please fill in all fields.');
+      return;
+    }
+    if (password.length < 6) {
+      showError('Password must be at least 6 characters.');
+      return;
+    }
+    if (password !== confirm) {
+      showError('Passwords do not match.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Creating account...';
+
+    // Sign up with Supabase Auth
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { username }
+      }
+    });
+
+    if (error) {
+      showError(error.message);
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
+      return;
+    }
+
+    // Create profile record
+    if (data.user) {
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        username: username,
+      });
+    }
+
+    // Check if email confirmation is required
+    if (data.session) {
+      // Auto-logged in (email confirmation disabled)
+      window.location.href = 'feed.html';
+    } else {
+      showSuccess('✅ Account created! Please check your email to confirm, then sign in.');
+      btn.textContent = 'Account Created!';
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Little Memories — Add Memory</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" class="loading-overlay">
+  <div class="spinner"></div>
+  <p>Saving your memory...</p>
+</div>
+
+<div class="create-page">
+
+  <!-- Header -->
+  <div class="create-header">
+    <a href="feed.html" class="back-btn">←</a>
+    <h2>Add Memory</h2>
+    <button class="save-btn" onclick="savePost()">Save ✓</button>
+  </div>
+
+  <!-- Body -->
+  <div class="create-body">
+
+    <!-- Type selector -->
+    <div class="create-section">
+      <div class="section-label">What are you sharing?</div>
+      <div class="type-selector">
+        <div class="type-opt selected" data-type="moment">
+          <div class="type-opt-icon">📝</div>
+          <div class="type-opt-label">Moment</div>
+        </div>
+        <div class="type-opt" data-type="album">
+          <div class="type-opt-icon">📷</div>
+          <div class="type-opt-label">Album</div>
+        </div>
+        <div class="type-opt" data-type="vlog">
+          <div class="type-opt-icon">🎬</div>
+          <div class="type-opt-label">Vlog</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Title -->
+    <div class="create-section">
+      <div class="section-label">Title</div>
+      <input class="create-title form-input" type="text" id="post-title"
+        placeholder="Give this memory a name...">
+    </div>
+
+    <!-- Text content -->
+    <div class="create-section">
+      <div class="section-label">Write about it</div>
+      <textarea class="create-text" id="post-content"
+        placeholder="Share what happened, how you felt, what made it special..."
+        rows="4"></textarea>
+    </div>
+
+    <!-- Photo upload (shown for moment & album) -->
+    <div class="create-section" id="photo-section">
+      <div class="section-label">Photos (up to 9)</div>
+      <div class="photo-upload-area" id="photo-upload-area">
+        <div class="upload-icon">📸</div>
+        <div class="upload-text">Tap to add photos</div>
+        <div class="upload-sub">JPG, PNG, HEIC supported</div>
+      </div>
+      <input type="file" id="photo-input" accept="image/*" multiple>
+      <div class="photo-preview-grid" id="photo-preview-grid"></div>
+    </div>
+
+    <!-- Video URL (shown for vlog) -->
+    <div class="create-section" id="video-section" style="display:none;">
+      <div class="section-label">Video Link</div>
+      <input class="create-video-input form-input" type="url" id="video-url"
+        placeholder="Paste YouTube or video URL...">
+      <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">
+        💡 Tip: Upload your video to YouTube first, then paste the link here.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/create.js"></script>
+</body>
+</html>
