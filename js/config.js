@@ -4,8 +4,8 @@
 //  Find them at: https://supabase.com → Project Settings → API
 // ============================================================
 
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';       // e.g. https://abcdefgh.supabase.co
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // starts with "eyJ..."
+const SUPABASE_URL = 'https://abcxyz123.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI...';
 
 // ============================================================
 //  DO NOT EDIT BELOW THIS LINE
