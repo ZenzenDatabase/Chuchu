@@ -201,7 +201,23 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
   box-shadow: 0 2px 8px rgba(212,133,106,0.3);
 }
 
-.posts-grid { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+/*.posts-grid { padding: 16px; display: flex; flex-direction: column; gap: 48px; }
+/* ===== POST CARD ===== */
+/*.post-card {
+  background: var(--warm-white);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 32px var(--shadow);
+  overflow: hidden;
+  animation: fadeUp 0.4s ease both;
+}*/
+
+/* Updated Grid */
+.posts-grid { 
+  padding: 16px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 32px; 
+}
 
 /* ===== POST CARD ===== */
 .post-card {
@@ -210,7 +226,87 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
   box-shadow: 0 2px 16px var(--shadow);
   overflow: hidden;
   animation: fadeUp 0.4s ease both;
+  
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
+
+/* THE FIX: Larger vertical presence */
+.post-card img {
+  display: block;
+  width: 100%;
+  
+  /* 1. Increases the minimum height so images look much larger */
+  min-height: 500px; 
+  
+  /* 2. Limits height to 90% of the screen so it's always fully visible */
+  max-height: 90vh; 
+  
+  /* 3. 'cover' makes the image fill the 500px area perfectly. 
+     If you prefer to see the whole image without any cropping at all, 
+     use 'contain' instead. */
+  object-fit: cover; 
+  
+  height: auto;
+  background: #f7f7f7;
+}
+
+/* Helper for Album Grids to ensure they are also tall */
+.post-images-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  min-height: 500px; /* Forces the album grid to be tall as well */
+}
+
+
+/* Container for the horizontal gallery */
+.post-images-gallery {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory; /* iPhone-like snapping effect */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Smooth momentum scrolling on iOS/WeChat */
+  gap: 10px;
+  background: #000; /* Dark background for a gallery feel */
+  border-radius: 8px;
+}
+
+/* Individual gallery items */
+.gallery-item {
+  flex: 0 0 100%; /* Each image takes 100% of the card width */
+  scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+  min-height: 500px; /* Larger height as requested */
+  max-height: 85vh; /* Ensure total visibility on screen */
+}
+
+.gallery-item img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* Total review: no pixels are cut off  */
+  display: block;
+}
+
+/* Hide scrollbar for a cleaner "App" look */
+.post-images-gallery::-webkit-scrollbar {
+  display: none;
+}
+
+.gallery-indicator {
+  text-align: center;
+  font-size: 11px;
+  color: #999;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
