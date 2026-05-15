@@ -1,16 +1,31 @@
-// ===== CREATE POST LOGIC =====
+import { getFirestore, collection, addDoc, serverTimestamp, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { getAuth } from "firebase/auth";
 
-let currentUser = null;
+// Initializing Services
+const db = getFirestore();
+const storage = getStorage();
+const auth = getAuth();
+
 let selectedType = 'moment';
-let selectedFiles = [];
+let selectedFiles = []; // For images
+let selectedVideoFile = null; // For video
 
-async function init() {
-  currentUser = await requireAuth();
-  if (!currentUser) return;
+// --- UI ELEMENTS ---
+const videoInput = document.getElementById('video-file');
+const videoFileName = document.getElementById('video-file-name');
+const progressBar = document.getElementById('upload-progress-bar');
+const progressContainer = document.getElementById('upload-progress-container');
+const statusText = document.getElementById('upload-status-text');
+
+// --- INITIALIZATION ---
+function init() {
   setupTypeSelector();
   setupPhotoUpload();
+  setupVideoUpload();
 }
 
+// Switch between Moment (Images) and Vlog (Video)
 function setupTypeSelector() {
   document.querySelectorAll('.type-opt').forEach(opt => {
     opt.addEventListener('click', () => {
@@ -18,132 +33,141 @@ function setupTypeSelector() {
       opt.classList.add('selected');
       selectedType = opt.dataset.type;
 
-      // Show/hide relevant sections
-      document.getElementById('photo-section').style.display =
-        (selectedType === 'moment' || selectedType === 'album') ? 'block' : 'none';
-      document.getElementById('video-section').style.display =
-        selectedType === 'vlog' ? 'block' : 'none';
+      document.getElementById('photo-section').style.display = (selectedType === 'moment' || selectedType === 'album') ? 'block' : 'none';
+      document.getElementById('video-section').style.display = selectedType === 'vlog' ? 'block' : 'none';
     });
   });
 }
 
+// --- PHOTO LOGIC ---
 function setupPhotoUpload() {
   const area = document.getElementById('photo-upload-area');
   const input = document.getElementById('photo-input');
+  if (!area || !input) return;
 
   area.addEventListener('click', () => input.click());
-
   input.addEventListener('change', (e) => {
     const files = Array.from(e.target.files);
     const newFiles = files.filter(f => f.type.startsWith('image/'));
-    selectedFiles = [...selectedFiles, ...newFiles].slice(0, 9); // max 9 photos
+    selectedFiles = [...selectedFiles, ...newFiles].slice(0, 9);
     renderPhotoPreview();
-    input.value = ''; // reset so same file can be re-added
+    input.value = '';
   });
 }
 
 function renderPhotoPreview() {
   const grid = document.getElementById('photo-preview-grid');
-  if (selectedFiles.length === 0) {
-    grid.innerHTML = '';
-    return;
-  }
-  grid.innerHTML = selectedFiles.map((file, i) => {
-    const url = URL.createObjectURL(file);
-    return `
-      <div class="photo-preview-item">
-        <img src="${url}" alt="preview">
-        <button class="photo-remove" onclick="removePhoto(${i})">✕</button>
-      </div>
-    `;
-  }).join('');
+  grid.innerHTML = selectedFiles.map((file, i) => `
+    <div class="photo-preview-item">
+      <img src="${URL.createObjectURL(file)}" alt="preview">
+      <button class="photo-remove" onclick="removePhoto(${i})">✕</button>
+    </div>
+  `).join('');
 }
 
-function removePhoto(index) {
+window.removePhoto = (index) => {
   selectedFiles.splice(index, 1);
   renderPhotoPreview();
+};
+
+// --- VIDEO LOGIC ---
+function setupVideoUpload() {
+  if (!videoInput) return;
+  videoInput.addEventListener('change', (e) => {
+    if (e.target.files[0]) {
+      selectedVideoFile = e.target.files[0];
+      videoFileName.innerText = selectedVideoFile.name;
+    }
+  });
 }
 
+// The core upload function [cite: 8, 9]
+async function uploadFileWithProgress(file, folder) {
+  const filePath = `posts/${auth.currentUser.uid}/${Date.now()}-${file.name}`; [cite: 10]
+  const storageRef = ref(storage, filePath);
+  const uploadTask = uploadBytesResumable(storageRef, file);
+
+  progressContainer.style.display = 'block';
+
+  return new Promise((resolve, reject) => {
+    uploadTask.on('state_changed', 
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        progressBar.style.width = progress + '%';
+        statusText.innerText = `Uploading: ${Math.round(progress)}%`;
+      }, 
+      (error) => {
+        alert("Upload failed. Max size: 200MB."); [cite: 11, 12]
+        reject(error);
+      }, 
+      async () => {
+        const url = await getDownloadURL(uploadTask.snapshot.ref);
+        resolve(url);
+      }
+    );
+  });
+}
+
+// --- SAVE POST ---
 async function savePost() {
   const title = document.getElementById('post-title').value.trim();
   const content = document.getElementById('post-content').value.trim();
-  const videoUrl = document.getElementById('video-url') ? document.getElementById('video-url').value.trim() : '';
 
-  if (!title && !content && selectedFiles.length === 0 && !videoUrl) {
-    showToast('Please add a title, text, or media ✏️');
+  if (!title && !content && selectedFiles.length === 0 && !selectedVideoFile) {
+    alert('Please add some content! ✏️');
     return;
   }
 
-  showLoading('Saving your memory...');
-
   try {
-    // 1. Create the post record
-    const { data: post, error: postError } = await supabase
-      .from('posts')
-      .insert({
-        user_id: currentUser.id,
-        title: title || null,
-        content: content || null,
-        type: selectedType,
-      })
-      .select()
-      .single();
+    let mediaUrls = [];
 
-    if (postError) throw postError;
-
-    // 2. Upload images (if any)
-    const mediaInserts = [];
-
-    for (let i = 0; i < selectedFiles.length; i++) {
-      const file = selectedFiles[i];
-      const ext = file.name.split('.').pop();
-      const path = `${currentUser.id}/${post.id}/${Date.now()}_${i}.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('media')
-        .upload(path, file, { contentType: file.type });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('media')
-        .getPublicUrl(path);
-
-      mediaInserts.push({
-        post_id: post.id,
-        url: publicUrl,
-        type: 'image',
-        order_index: i,
-      });
+    // 1. Handle Video Upload (Vlog)
+    if (selectedType === 'vlog' && selectedVideoFile) {
+      const url = await uploadFileWithProgress(selectedVideoFile, 'videos');
+      mediaUrls.push({ url, type: 'video' });
+    } 
+    // 2. Handle Image Uploads (Moments/Albums)
+    else if (selectedFiles.length > 0) {
+      for (const file of selectedFiles) {
+        const url = await uploadFileWithProgress(file, 'images');
+        mediaUrls.push({ url, type: 'image' });
+      }
     }
 
-    // 3. Add video URL (if vlog)
-    if (selectedType === 'vlog' && videoUrl) {
-      mediaInserts.push({
-        post_id: post.id,
-        url: videoUrl,
-        type: 'video',
-        order_index: 0,
-      });
-    }
+    // 3. Save to Firestore [cite: 2, 6]
+    await addDoc(collection(db, "posts"), {
+      authorId: auth.currentUser.uid, [cite: 3, 6]
+      title: title,
+      content: content,
+      type: selectedType,
+      media: mediaUrls,
+      createdAt: serverTimestamp()
+    });
 
-    // 4. Insert media records
-    if (mediaInserts.length > 0) {
-      const { error: mediaError } = await supabase
-        .from('media')
-        .insert(mediaInserts);
-      if (mediaError) throw mediaError;
-    }
-
-    hideLoading();
-    showToast('Memory saved! 🌟');
-    setTimeout(() => { window.location.href = 'feed.html'; }, 1200);
+    alert('Memory saved! 🌟');
+    window.location.href = 'feed.html';
 
   } catch (err) {
-    hideLoading();
     console.error(err);
-    showToast('Error saving: ' + (err.message || 'Please try again'));
+    alert('Error saving memory.');
   }
 }
 
+// --- UPDATE & DELETE FUNCTIONS --- [cite: 5, 7]
+window.handleDelete = async (postId) => {
+  if (confirm("Delete this memory permanently?")) {
+    await deleteDoc(doc(db, "posts", postId));
+    location.reload();
+  }
+};
+
+window.handleUpdate = async (postId, currentContent) => {
+  const newContent = prompt("Update your memory text:", currentContent);
+  if (newContent) {
+    await updateDoc(doc(db, "posts", postId), { content: newContent });
+    location.reload();
+  }
+};
+
 document.addEventListener('DOMContentLoaded', init);
+window.savePost = savePost; // Make available to HTML button
