@@ -2,45 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Family Memories (家的记忆)</title>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  
+  <title>Family Memories (家的记忆) — Feed</title>
+  
   <link rel="stylesheet" href="css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
-  <script src="js/auth.js"></script>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 </head>
 <body>
 
-<!-- Loading overlay -->
-<div id="loading-overlay" class="loading-overlay">
+<div id="loading-overlay" class="loading-overlay" style="display: none;">
   <div class="spinner"></div>
-  <p>Loading...</p>
+  <p>Loading your memories...</p>
 </div>
 
-<!-- Background decoration -->
 <div class="bg-pattern"></div>
 
-<!-- Navigation -->
 <nav class="nav">
   <div class="container nav-inner">
-    <span class="nav-title">Family <span>Memories</span></span>
+    <span class="nav-title">Little <span>Moments</span></span>
     <button class="nav-btn" onclick="toggleProfile()" title="Profile">👤</button>
   </div>
 </nav>
 
-<!-- Profile panel (hidden by default) -->
 <div id="profile-panel" class="profile-panel" style="display:none;"></div>
 
-<!-- Tab filters -->
 <div class="tab-bar">
   <button class="tab-btn active" data-filter="all">🌟 All （全部）</button>
-  <button class="tab-btn" data-filter="moment">📝 Moments（文字）</button>
-  <button class="tab-btn" data-filter="album">📷 Albums（相片）</button>
-  <button class="tab-btn" data-filter="vlog">🎬 Vlogs（视频）</button>
+  <button class="tab-btn" data-filter="moment">📝 Moments</button>
+  <button class="tab-btn" data-filter="album">📷 Albums</button>
+  <button class="tab-btn" data-filter="vlog">🎬 Vlogs</button>
 </div>
 
-<!-- Posts -->
 <div class="page">
   <div class="feed">
     <div class="posts-grid container" id="posts-grid">
@@ -49,18 +44,19 @@
   </div>
 </div>
 
-<!-- FAB: Create new post -->
-<a href="create.html" class="fab" title="Add memory （添加）">＋</a>
+<a href="create.html" class="fab" title="Add memory">＋</a>
 
 <script>
   let profileVisible = false;
 
   function toggleProfile() {
     const panel = document.getElementById('profile-panel');
+    if (!panel) return;
     profileVisible = !profileVisible;
     panel.style.display = profileVisible ? 'flex' : 'none';
   }
 </script>
-<script src="js/feed.js"></script>
+
+<script type="module" src="js/feed.js"></script>
 </body>
 </html>
