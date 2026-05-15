@@ -1,14 +1,21 @@
-// ===== CREATE POST LOGIC =====
-
 let currentUser = null;
 let selectedType = 'moment';
 let selectedFiles = [];
+let selectedVideoFile = null;
 
 async function init() {
-  currentUser = await requireAuth();
-  if (!currentUser) return;
-  setupTypeSelector();
-  setupPhotoUpload();
+  try {
+    currentUser = await requireAuth();
+    if (!currentUser) return;
+
+    setupTypeSelector();
+    setupPhotoUpload();
+    setupVideoUpload();
+
+    document.getElementById('save-post-btn').addEventListener('click', savePost);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 function setupTypeSelector() {
@@ -18,9 +25,9 @@ function setupTypeSelector() {
       opt.classList.add('selected');
       selectedType = opt.dataset.type;
 
-      // Show/hide relevant sections
       document.getElementById('photo-section').style.display =
         (selectedType === 'moment' || selectedType === 'album') ? 'block' : 'none';
+
       document.getElementById('video-section').style.display =
         selectedType === 'vlog' ? 'block' : 'none';
     });
@@ -36,18 +43,42 @@ function setupPhotoUpload() {
   input.addEventListener('change', (e) => {
     const files = Array.from(e.target.files);
     const newFiles = files.filter(f => f.type.startsWith('image/'));
-    selectedFiles = [...selectedFiles, ...newFiles].slice(0, 9); // max 9 photos
+    selectedFiles = [...selectedFiles, ...newFiles].slice(0, 9);
     renderPhotoPreview();
-    input.value = ''; // reset so same file can be re-added
+    input.value = '';
+  });
+}
+
+function setupVideoUpload() {
+  const area = document.getElementById('video-upload-area');
+  const input = document.getElementById('video-input');
+
+  if (!area || !input) return;
+
+  area.addEventListener('click', () => input.click());
+
+  input.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    selectedVideoFile = file;
+
+    document.getElementById('video-preview').innerHTML = `
+      <video controls width="100%" style="border-radius:12px;">
+        <source src="${URL.createObjectURL(file)}" type="${file.type}">
+      </video>
+    `;
   });
 }
 
 function renderPhotoPreview() {
   const grid = document.getElementById('photo-preview-grid');
+
   if (selectedFiles.length === 0) {
     grid.innerHTML = '';
     return;
   }
+
   grid.innerHTML = selectedFiles.map((file, i) => {
     const url = URL.createObjectURL(file);
     return `
@@ -67,17 +98,15 @@ function removePhoto(index) {
 async function savePost() {
   const title = document.getElementById('post-title').value.trim();
   const content = document.getElementById('post-content').value.trim();
-  const videoUrl = document.getElementById('video-url') ? document.getElementById('video-url').value.trim() : '';
 
-  if (!title && !content && selectedFiles.length === 0 && !videoUrl) {
-    showToast('Please add a title, text, or media ✏️');
+  if (!title && !content && selectedFiles.length === 0 && !selectedVideoFile) {
+    showToast('Please add content ✏️');
     return;
   }
 
   showLoading('Saving your memory...');
 
   try {
-    // 1. Create the post record
     const { data: post, error: postError } = await supabase
       .from('posts')
       .insert({
@@ -91,19 +120,19 @@ async function savePost() {
 
     if (postError) throw postError;
 
-    // 2. Upload images (if any)
     const mediaInserts = [];
 
+    // upload images
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
       const ext = file.name.split('.').pop();
-      const path = `${currentUser.id}/${post.id}/${Date.now()}_${i}.${ext}`;
+      const path = `${currentUser.id}/${post.id}/img_${Date.now()}_${i}.${ext}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error } = await supabase.storage
         .from('media')
-        .upload(path, file, { contentType: file.type });
+        .upload(path, file);
 
-      if (uploadError) throw uploadError;
+      if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage
         .from('media')
@@ -113,37 +142,54 @@ async function savePost() {
         post_id: post.id,
         url: publicUrl,
         type: 'image',
-        order_index: i,
+        order_index: i
       });
     }
 
-    // 3. Add video URL (if vlog)
-    if (selectedType === 'vlog' && videoUrl) {
+    // upload video
+    if (selectedType === 'vlog' && selectedVideoFile) {
+      const ext = selectedVideoFile.name.split('.').pop();
+      const path = `${currentUser.id}/${post.id}/video_${Date.now()}.${ext}`;
+
+      const { error } = await supabase.storage
+        .from('media')
+        .upload(path, selectedVideoFile);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(path);
+
       mediaInserts.push({
         post_id: post.id,
-        url: videoUrl,
+        url: publicUrl,
         type: 'video',
-        order_index: 0,
+        order_index: 0
       });
     }
 
-    // 4. Insert media records
     if (mediaInserts.length > 0) {
-      const { error: mediaError } = await supabase
+      const { error } = await supabase
         .from('media')
         .insert(mediaInserts);
-      if (mediaError) throw mediaError;
+
+      if (error) throw error;
     }
 
     hideLoading();
     showToast('Memory saved! 🌟');
-    setTimeout(() => { window.location.href = 'feed.html'; }, 1200);
+
+    setTimeout(() => {
+      window.location.href = 'feed.html';
+    }, 1000);
 
   } catch (err) {
     hideLoading();
     console.error(err);
-    showToast('Error saving: ' + (err.message || 'Please try again'));
+    showToast(err.message);
   }
 }
 
+window.removePhoto = removePhoto;
 document.addEventListener('DOMContentLoaded', init);
