@@ -87,6 +87,7 @@ async function loadPosts() {
 }
 
 function renderPostCard(post, index) {
+  // --- 1. Identity & Metadata Setup ---
   const profile = post.profiles;
   const initials = getInitials(profile ? profile.username : '?');
   const avatarHtml = profile && profile.avatar_url
@@ -96,54 +97,71 @@ function renderPostCard(post, index) {
   const badgeClass = { moment: 'badge-moment', album: 'badge-album', vlog: 'badge-vlog' }[post.type] || 'badge-moment';
   const badgeLabel = { moment: '📝 Moment', album: '📷 Album', vlog: '🎬 Vlog' }[post.type] || '📝 Moment';
 
+  // Permission check for Edit/Delete buttons [cite: 3, 6, 7]
+  const isAuthor = currentUser && (post.authorId === currentUser.uid || post.user_id === currentUser.id);
+
+  // --- 2. Media Rendering Logic ---
   const images = (post.media || [])
     .filter(m => m.type === 'image')
     .sort((a, b) => a.order_index - b.order_index);
   const video = (post.media || []).find(m => m.type === 'video');
 
   let mediaHtml = '';
+  
   if (post.type === 'vlog' && video) {
-    // Extract YouTube thumbnail if YouTube URL
-    const ytMatch = video.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
-    const thumb = ytMatch
-      ? `https://img.youtube.com/vi/${ytMatch[1]}/mqdefault.jpg`
-      : '';
+    // UPDATED: Standard video player for your direct uploads
     mediaHtml = `
-      <div class="post-video-thumb" onclick="openVideo('${escapeHtml(video.url)}')">
-        ${thumb ? `<img src="${thumb}" alt="video thumbnail">` : '<div style="height:180px;background:var(--sand);display:flex;align-items:center;justify-content:center;font-size:48px;">🎬</div>'}
-        <div class="play-btn">▶</div>
+      <div class="post-video-container">
+        <video src="${video.url}" controls style="width:100%; border-radius:8px;"></video>
+      </div>`;
+  } else if (images.length > 1) {
+    // NEW: iPhone-style Swipe Gallery for multiple images
+    mediaHtml = `
+      <div class="post-images-gallery">
+        ${images.map(img => `
+          <div class="gallery-item">
+            <img src="${img.url}" onclick="window.open('${img.url}', '_blank')" loading="lazy" alt="photo">
+          </div>
+        `).join('')}
       </div>
+      <div class="gallery-indicator">Swipe to view all ${images.length} photos ↔️</div>
     `;
   } else if (images.length === 1) {
-    mediaHtml = `<div class="post-images-single"><img src="${images[0].url}" alt="post image" loading="lazy"></div>`;
-  } else if (images.length >= 2) {
-    const shown = images.slice(0, 4);
-    const extra = images.length > 4 ? images.length - 4 : 0;
-    const gridItems = shown.map((img, i) => {
-      const isLast = i === 3 && extra > 0;
-      return `<div class="${isLast ? 'img-more' : ''}" ${isLast ? `data-more="+${extra}"` : ''}>
-        <img src="${img.url}" alt="photo" loading="lazy">
+    // Single Image: Full width and reviewable
+    mediaHtml = `
+      <div class="post-images-single">
+        <img src="${images[0].url}" onclick="window.open('${images[0].url}', '_blank')" loading="lazy" alt="photo">
       </div>`;
-    }).join('');
-    mediaHtml = `<div class="post-images-grid">${gridItems}</div>`;
   }
 
+  // --- 3. Final Template Construction ---
   return `
     <div class="post-card" style="animation-delay:${index * 0.07}s">
       <div class="post-header">
         <div class="post-avatar">${avatarHtml}</div>
         <div class="post-meta">
           <div class="post-author">${escapeHtml(profile ? profile.username : 'Unknown')}</div>
-          <div class="post-date">${formatDate(post.created_at)}</div>
+          <div class="post-date">${formatDate(post.created_at || post.createdAt)}</div>
         </div>
-        <span class="post-type-badge ${badgeClass}">${badgeLabel}</span>
+        <div class="post-header-right">
+          <span class="post-type-badge ${badgeClass}">${badgeLabel}</span>
+          ${isAuthor ? `
+            <div class="post-controls">
+              <button class="control-btn" onclick="handleUpdate('${post.id}', '${escapeHtml(post.content || '')}')" title="Edit">✏️</button>
+              <button class="control-btn" onclick="handleDelete('${post.id}')" title="Delete">🗑️</button>
+            </div>
+          ` : ''}
+        </div>
       </div>
+      
       ${post.title ? `<div class="post-title">${escapeHtml(post.title)}</div>` : ''}
       ${post.content ? `<div class="post-content">${escapeHtml(post.content)}</div>` : ''}
+      
       ${mediaHtml}
     </div>
   `;
 }
+
 
 function openVideo(url) {
   window.open(url, '_blank');
