@@ -78,13 +78,27 @@
 
     <!-- Video URL (shown for vlog) -->
     <div class="create-section" id="video-section" style="display:none;">
-      <div class="section-label">Video Link（视频链接）</div>
-      <input class="create-video-input form-input" type="url" id="video-url"
-        placeholder="Paste YouTube or video URL...">
-      <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">
-        💡 Tip: Upload your video to YouTube first, then paste the link here.
-      </p>
+  <div class="section-label">Upload Vlog（上传视频）</div>
+  
+  <div class="file-input-container">
+    <input type="file" id="video-file" accept="video/*" style="display: none;">
+    <button type="button" class="btn btn-secondary" onclick="document.getElementById('video-file').click()">
+      📹 Choose Video from Phone
+    </button>
+    <span id="video-file-name" style="font-size:12px; margin-left:8px;">No file chosen</span>
+  </div>
+
+  <div id="upload-progress-container" style="display:none; margin-top:15px;">
+    <div style="height:8px; width:100%; background:#eee; border-radius:4px; overflow:hidden;">
+      <div id="upload-progress-bar" style="height:100%; width:0%; background:var(--primary); transition: width 0.3s;"></div>
     </div>
+    <p id="upload-status-text" style="font-size:11px; color:var(--text-muted); margin-top:4px; text-align:center;">Uploading: 0%</p>
+  </div>
+
+  <p style="font-size:12px; color:var(--text-muted); margin-top:10px;">
+    💡 Tip: Videos are kept private in your family cloud. Max size: 200MB.
+  </p>
+</div>
 
   </div>
 </div>
