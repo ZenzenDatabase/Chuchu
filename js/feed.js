@@ -1,4 +1,42 @@
 // ===== FEED PAGE LOGIC =====
+import { getFirestore, doc, updateDoc, deleteDoc } from "firebase/firestore";
+
+const db = getFirestore();
+
+// --- DELETE FUNCTION ---
+async function handleDelete(postId) {
+  if (confirm("Are you sure you want to delete this memory? 🌸")) {
+    try {
+      const postRef = doc(db, "posts", postId);
+      await deleteDoc(postRef);
+      alert("Deleted successfully!");
+      location.reload(); // Refresh the feed
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert("You don't have permission to delete this.");
+    }
+  }
+}
+
+// --- UPDATE FUNCTION (Simple Text Edit) ---
+async function handleUpdate(postId, currentCaption) {
+  const newCaption = prompt("Edit your caption:", currentCaption);
+  
+  if (newCaption !== null && newCaption !== currentCaption) {
+    try {
+      const postRef = doc(db, "posts", postId);
+      await updateDoc(postRef, {
+        caption: newCaption,
+        updatedAt: new Date()
+      });
+      alert("Updated!");
+      location.reload();
+    } catch (error) {
+      console.error("Update failed:", error);
+      alert("Update failed. You can only edit your own posts.");
+    }
+  }
+}
 
 let currentUser = null;
 let currentProfile = null;
