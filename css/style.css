@@ -3,19 +3,19 @@
 
 /* ===== VARIABLES ===== */
 :root {
-  --cream: #fdf8f3;
+  --cream: #ecfefa; /* <-- Changed to your new Tiffany Blue / Teal color */
   --warm-white: #fffcf8;
-  --brown: #5c3d2e;
+  --brown: #123B37;
   --brown-light: #8b6354;
-  --rose: #d4856a;
+  --rose: #36B0A4;
   --rose-light: #e8a898;
   --sage: #7a9e7e;
   --sage-light: #a8c5ab;
   --sand: #e8d5c4;
   --sand-dark: #c9b5a4;
-  --text: #3a2a20;
-  --text-light: #7a6458;
-  --text-muted: #a89890;
+  --text: #D88189;
+  --text-light: #123B37;
+  --text-muted: #D88189;
   --shadow: rgba(92, 61, 46, 0.12);
   --shadow-md: rgba(92, 61, 46, 0.18);
   --radius: 16px;
@@ -45,11 +45,23 @@ input, textarea, select { font-family: inherit; }
 h1, h2, h3 { font-family: 'Playfair Display', serif; }
 
 /* ===== BACKGROUND DECORATION ===== */
-.bg-pattern {
+/*.bg-pattern {
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background-image:
     radial-gradient(circle at 20% 20%, rgba(212,133,106,0.08) 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, rgba(122,158,126,0.08) 0%, transparent 50%);
+}*/
+
+/* ===== BACKGROUND DECORATION ===== */
+.bg-pattern {
+  position: fixed; 
+  inset: 0; 
+  pointer-events: none; 
+  z-index: 0;
+  /* Soft white radial lights to give the teal depth and a premium look */
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.45) 0%, transparent 55%),
+    radial-gradient(circle at 85% 75%, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
 }
 
 /* ===== NAV ===== */
@@ -549,13 +561,21 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.loading-overlay {
+/*.loading-overlay {
   position: fixed; inset: 0; z-index: 999;
   background: rgba(253,248,243,0.85);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 12px; display: none;
+}*/
+.loading-overlay {
+  position: fixed; inset: 0; z-index: 999;
+  background: rgba(164, 229, 224, 0.85); /* <-- Updated to match #A4E5E0 with opacity */
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; display: none;
 }
+
 .loading-overlay.show { display: flex; }
 .loading-overlay p { font-size: 14px; color: var(--text-light); }
 
