@@ -360,8 +360,9 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
 .post-content {
   padding: 0 16px 12px;
   font-size: 14px; color: var(--text-light); line-height: 1.6;
-  display: -webkit-box; -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical; overflow: hidden;
+  display: block;
+  /*-webkit-box; -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical; overflow: hidden;*/
 }
 
 .post-images { position: relative; }
