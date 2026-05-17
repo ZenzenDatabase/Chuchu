@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="mobile-web-app-capable" content="yes">
-  <title>Family Memories - Add Memory</title>
+  <title>Family Memories - 添加生活瞬间</title>
   <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
@@ -20,8 +20,8 @@
 <div class="create-page">
   <div class="create-header">
     <a href="feed.html" class="back-btn">←</a>
-    <h2>Add Memory - 添加记忆</h2>
-    <button class="save-btn" id="save-post-btn">Save ✓</button>
+    <h2>Add Memory - 添加</h2>
+    <button class="save-btn" id="save-post-btn">Save - 保存 ✓</button>
   </div>
 
   <div class="create-body">
@@ -30,41 +30,41 @@
       <div class="type-selector">
         <div class="type-opt selected" data-type="moment">
           <div class="type-opt-icon">📝</div>
-          <div class="type-opt-label">Moment</div>
+          <div class="type-opt-label">Moment - 文字记录</div>
         </div>
         <div class="type-opt" data-type="album">
           <div class="type-opt-icon">📷</div>
-          <div class="type-opt-label">Album</div>
+          <div class="type-opt-label">Album - 相片</div>
         </div>
         <div class="type-opt" data-type="vlog">
           <div class="type-opt-icon">🎬</div>
-          <div class="type-opt-label">Vlog</div>
+          <div class="type-opt-label">Vlog - 视频</div>
         </div>
       </div>
     </div>
 
     <div class="create-section">
-      <div class="section-label">Title</div>
+      <div class="section-label">Title - 题目</div>
       <input class="create-title form-input" type="text" id="post-title" placeholder="Give this memory a name...">
     </div>
 
     <div class="create-section">
-      <div class="section-label">Write about it</div>
+      <div class="section-label">Write about it - 写点什么🤔</div>
       <textarea class="create-text" id="post-content" placeholder="Share what happened..." rows="4"></textarea>
     </div>
 
     <div class="create-section" id="photo-section">
-      <div class="section-label">Photos (up to 9)</div>
+      <div class="section-label">Photos (up to 9) - 限定8张照片内</div>
       <div class="photo-upload-area" id="photo-upload-area">
         <div class="upload-icon">📸</div>
-        <div class="upload-text">Tap to add photos</div>
+        <div class="upload-text">Tap to add photos - 点击添加照片</div>
       </div>
       <input type="file" id="photo-input" accept="image/*" multiple style="display:none;">
       <div class="photo-preview-grid" id="photo-preview-grid"></div>
     </div>
 
     <div class="create-section" id="video-section" style="display:none;">
-      <div class="section-label">Upload Vlog</div>
+      <div class="section-label">Upload Vlog - 上传</div>
 
       <div class="photo-upload-area" id="video-upload-area">
         <div class="upload-icon">🎬</div>
