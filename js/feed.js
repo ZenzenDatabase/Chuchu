@@ -124,7 +124,7 @@ function renderPostCard(post, index) {
           </div>
         `).join('')}
       </div>
-      <div class="gallery-indicator">Swipe to view all ${images.length} photos ↔️</div>
+      <div class="gallery-indicator">滑动屏幕观看${images.length}张照片photos ↔️</div>
     `;
   } else if (images.length === 1) {
     // Single Image: Full width and reviewable
@@ -173,3 +173,5 @@ function escapeHtml(str) {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+
